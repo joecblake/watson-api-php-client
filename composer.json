@@ -1,0 +1,25 @@
+{
+  "name": "bq/watson",
+  "description": "A simple PHP library for accessing IBM's Watson API services",
+  "keywords": ["PHP","SDK","IBM","Watson","Client","REST","Integration"],
+  "type": "library",
+  "license": "MIT",
+  "version": "1.0.0",
+  "authors": [
+    {
+      "name": "Joe Blake",
+      "email": "joe.blake@buyerquest.com"
+    }
+  ],
+  "minimum-stability": "dev",
+  "require": {
+    "guzzlehttp/guzzle": "^6.2",
+    "monolog/monolog": "^1.22"
+  },
+  "autoload": {
+    "psr-4": {
+      "Watson\\": "Watson/",
+      "Watson\\Services\\V1\\RetrieveAndRank\\": "Watson/Services/V1/RetrieveAndRank/"
+    }
+  }
+}
