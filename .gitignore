@@ -2,3 +2,6 @@ composer.phar
 /vendor/
 .idea
 composer.lock
+sample.php
+*.zip
+/sample.php

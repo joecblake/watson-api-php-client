@@ -18,8 +18,10 @@
   },
   "autoload": {
     "psr-4": {
-      "Watson\\": "Watson/",
-      "Watson\\Services\\V1\\RetrieveAndRank\\": "Watson/Services/V1/RetrieveAndRank/"
+      "Watson\\": "src/",
+      "Watson\\Interfaces\\": "src/Interfaces",
+      "Watson\\Helpers\\": "src/Helpers",
+      "Watson\\Services\\V1\\RetrieveAndRank\\": "src/Services/V1/RetrieveAndRank/"
     }
   }
 }
