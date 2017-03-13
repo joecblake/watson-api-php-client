@@ -4,4 +4,4 @@ composer.phar
 composer.lock
 sample.php
 *.zip
-/sample.php
+test_data.json

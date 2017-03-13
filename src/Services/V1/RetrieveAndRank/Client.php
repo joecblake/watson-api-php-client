@@ -93,6 +93,10 @@ class Client extends GuzzleHttp\Client implements ClientInterface
     }
 
 
+    /**
+     * List all SOLR clusters
+     * @return mixed
+     */
     public function listSolrCluster()
     {
 
@@ -132,15 +136,21 @@ class Client extends GuzzleHttp\Client implements ClientInterface
 
     }
 
+    /**
+     * Delete a SOLR cluster
+     * @param $clusterId
+     * @return bool
+     */
     public function deleteSolrCluster($clusterId)
     {
 
         $endpoint = 'solr_clusters/' . $clusterId;
         $url = Helper::buildRequestUrl($this->getServiceUrl(), $this->getServiceVersion(), $endpoint);
+        $urlWithParams = sprintf('%s/%s', $url, $clusterId);
 
         try {
 
-            $response = $this->request('DELETE', $url, ['auth' => [$this->getServiceUsername(), $this->getServicePassword()]]);
+            $response = $this->request('DELETE', $urlWithParams, ['auth' => [$this->getServiceUsername(), $this->getServicePassword()]]);
 
             if ($response->getStatusCode() == 200) {
 
@@ -168,6 +178,12 @@ class Client extends GuzzleHttp\Client implements ClientInterface
 
     }
 
+    /**
+     * Create a new SOLR cluster
+     * @param $size
+     * @param $name
+     * @return mixed
+     */
     public function addSolrCluster($size, $name)
     {
 
@@ -217,6 +233,13 @@ class Client extends GuzzleHttp\Client implements ClientInterface
     }
 
 
+    /**
+     * Upload SOLR cluster's config
+     * @param $clusterId
+     * @param $configName
+     * @param $filePath
+     * @return bool
+     */
     public function uploadSolrConfig($clusterId, $configName, $filePath)
     {
 
@@ -258,6 +281,282 @@ class Client extends GuzzleHttp\Client implements ClientInterface
             Helper::log($e->getMessage(), Logger::CRITICAL);
 
         }
+
+    }
+
+
+    /**
+     * Delete SOLR config
+     * @param $clusterId
+     * @param $configName
+     * @return bool
+     */
+    public function deleteSolrConfig($clusterId, $configName)
+    {
+
+        $endpoint = 'solr_clusters';
+        $url = Helper::buildRequestUrl($this->getServiceUrl(), $this->getServiceVersion(), $endpoint);
+        $urlWithParams = sprintf('%s/%s/config/%s', $url, $clusterId, $configName);
+
+        try {
+
+            $response = $this->request('DELETE', $urlWithParams, ['auth' => [$this->getServiceUsername(), $this->getServicePassword()]]);
+
+            if ($response->getStatusCode() == 200) {
+
+                return true;
+
+            } else {
+
+                Helper::log('Unexpected status code ' . $response->getStatusCode() . ': ' . $response->getBody()->getContents(), Logger::CRITICAL);
+
+            }
+
+        } catch (ClientException $e) {
+
+            Helper::log($e->getMessage(), Logger::CRITICAL);
+
+        } catch (BadResponseException $e) {
+
+            Helper::log($e->getMessage(), Logger::CRITICAL);
+
+        } catch (\Exception $e) {
+
+            Helper::log($e->getMessage(), Logger::CRITICAL);
+
+        }
+
+    }
+
+
+    /**
+     * List Al SOLR configs
+     * @param $clusterId
+     * @return mixed
+     */
+    public function listSolrConfigs($clusterId)
+    {
+
+        $endpoint = 'solr_clusters';
+        $url = Helper::buildRequestUrl($this->getServiceUrl(), $this->getServiceVersion(), $endpoint);
+        $urlWithParams = sprintf('%s/%s/config', $url, $clusterId);
+
+        try {
+
+            $response = $this->request('GET', $urlWithParams, ['auth' => [$this->getServiceUsername(), $this->getServicePassword()]]);
+
+            if ($response->getStatusCode() == 200) {
+
+                $stream = $response->getBody();
+                $content = $stream->getContents();
+
+                return json_decode($content, true);
+
+            } else {
+
+                Helper::log('Unexpected status code ' . $response->getStatusCode() . ': ' . $response->getBody()->getContents(), Logger::CRITICAL);
+
+            }
+
+        } catch (ClientException $e) {
+
+            Helper::log($e->getMessage(), Logger::CRITICAL);
+
+        } catch (BadResponseException $e) {
+
+            Helper::log($e->getMessage(), Logger::CRITICAL);
+
+        } catch (\Exception $e) {
+
+            Helper::log($e->getMessage(), Logger::CRITICAL);
+
+        }
+
+    }
+
+    /**
+     * Create a new SOLR collection
+     * @param $clusterId
+     * @param $configName
+     * @param $collectionName
+     * @return mixed
+     */
+    public function addSolrCollection($clusterId,$configName,$collectionName)
+    {
+
+        $endpoint = 'solr_clusters';
+        $url = Helper::buildRequestUrl($this->getServiceUrl(), $this->getServiceVersion(), $endpoint);
+        $urlWithParams = sprintf('%s/%s/solr/admin/collections', $url, $clusterId);
+
+        try {
+
+            $params = array();
+            $params['action'] = 'CREATE';
+            $params['name'] = $collectionName;
+            $params['collection.configName'] = $configName;
+            $params['wt'] = 'json';
+
+            $response = $this->request('POST', $urlWithParams,
+                [
+                    'auth' => [$this->getServiceUsername(), $this->getServicePassword()],
+                    'headers' => ['content-type' => 'application/x-www-form-urlencoded', 'Accept' => 'application/json'],
+                    'form_params' => $params
+                ]
+            );
+
+            if ($response->getStatusCode() == 200) {
+
+                $stream = $response->getBody();
+                $content = $stream->getContents();
+
+                return json_decode($content, true);
+
+            } else {
+
+                Helper::log('Unexpected status code ' . $response->getStatusCode() . ': ' . $response->getBody()->getContents(), Logger::CRITICAL);
+
+            }
+
+        } catch (ClientException $e) {
+
+            Helper::log($e->getMessage(), Logger::CRITICAL);
+
+        } catch (BadResponseException $e) {
+
+            Helper::log($e->getMessage(), Logger::CRITICAL);
+
+        } catch (\Exception $e) {
+
+            Helper::log($e->getMessage(), Logger::CRITICAL);
+
+        }
+
+    }
+
+
+    /**
+     * Delte a SOLR collection
+     * @param $clusterId
+     * @param $collectionName
+     * @return mixed
+     */
+    public function deleteSolrCollection($clusterId,$collectionName)
+    {
+
+        $endpoint = 'solr_clusters';
+        $url = Helper::buildRequestUrl($this->getServiceUrl(), $this->getServiceVersion(), $endpoint);
+        $urlWithParams = sprintf('%s/%s/solr/admin/collections', $url, $clusterId);
+
+        try {
+
+            $params = array();
+            $params['action'] = 'DELETE';
+            $params['name'] = $collectionName;
+            $params['wt'] = 'json';
+
+            $response = $this->request('POST', $urlWithParams,
+                [
+                    'auth' => [$this->getServiceUsername(), $this->getServicePassword()],
+                    'headers' => ['content-type' => 'application/x-www-form-urlencoded', 'Accept' => 'application/json'],
+                    'form_params' => $params
+                ]
+            );
+
+            if ($response->getStatusCode() == 200) {
+
+                $stream = $response->getBody();
+                $content = $stream->getContents();
+
+                return json_decode($content, true);
+
+            } else {
+
+                Helper::log('Unexpected status code ' . $response->getStatusCode() . ': ' . $response->getBody()->getContents(), Logger::CRITICAL);
+
+            }
+
+        } catch (ClientException $e) {
+
+            Helper::log($e->getMessage(), Logger::CRITICAL);
+
+        } catch (BadResponseException $e) {
+
+            Helper::log($e->getMessage(), Logger::CRITICAL);
+
+        } catch (\Exception $e) {
+
+            Helper::log($e->getMessage(), Logger::CRITICAL);
+
+        }
+
+    }
+
+
+    /**
+     * @param $clusterId
+     * @param $collectionName
+     * @param array $data
+     * @return mixed
+     */
+    public function indexDocuments($clusterId,$collectionName,array $data = ['source'=>'stream']){
+
+
+        $endpoint = 'solr_clusters';
+        $url = Helper::buildRequestUrl($this->getServiceUrl(), $this->getServiceVersion(), $endpoint);
+        $urlWithParams = sprintf('%s/%s/solr/%s/update', $url, $clusterId,$collectionName);
+
+        try {
+
+            if($data['source'] == 'stream'){
+                $body = file_get_contents($data['path']);
+            }else{
+                $body = json_encode($data['raw']);
+            }
+
+            $response = $this->request('POST', $urlWithParams,
+                [
+                    'auth' => [$this->getServiceUsername(), $this->getServicePassword()],
+                    'headers' => ['content-type' => 'application/json', 'Accept' => 'application/json'],
+                    'body' => $body
+                ]);
+
+            if ($response->getStatusCode() == 200) {
+
+                $stream = $response->getBody();
+                $content = $stream->getContents();
+
+                $responseData = json_decode($content, true);
+
+                if($responseData['responseHeader']['status'] !== 0){
+
+                    Helper::log('Index failed with status code ' . $responseData['responseHeader']['status'] . ' : ' . var_export($responseData,true), Logger::CRITICAL);
+
+                }else{
+
+                    return true;
+
+                }
+
+            } else {
+
+                Helper::log('Unexpected status code ' . $response->getStatusCode() . ': ' . $response->getBody()->getContents(), Logger::CRITICAL);
+
+            }
+
+        } catch (ClientException $e) {
+
+            Helper::log($e->getMessage(), Logger::CRITICAL);
+
+        } catch (BadResponseException $e) {
+
+            Helper::log($e->getMessage(), Logger::CRITICAL);
+
+        } catch (\Exception $e) {
+
+            Helper::log($e->getMessage(), Logger::CRITICAL);
+
+        }
+
 
     }
 
