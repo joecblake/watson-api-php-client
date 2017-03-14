@@ -11,6 +11,7 @@
       "email": "joe.blake@buyerquest.com"
     }
   ],
+  "minimum-stability": "dev",
   "require": {
     "guzzlehttp/guzzle": "^6.2",
     "monolog/monolog": "^1.22"
