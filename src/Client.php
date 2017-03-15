@@ -38,8 +38,6 @@ class Client
          */
 
         $client = new RetrieveAndRank\Client($this->_transportConfig);
-        $client->setServiceUsername($this->_config->username);
-        $client->setServicePassword($this->_config->password);
         $client->setServiceUrl($this->_config->url);
         $client->setServiceVersion($this->_config->version);
 

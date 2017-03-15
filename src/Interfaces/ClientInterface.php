@@ -8,26 +8,6 @@ interface ClientInterface
     /**
      * @return mixed
      */
-    public function getServiceUsername();
-
-    /**
-     * @param mixed $serviceUsername
-     */
-    public function setServiceUsername($serviceUsername);
-
-    /**
-     * @return mixed
-     */
-    public function getServicePassword();
-
-    /**
-     * @param mixed $servicePassword
-     */
-    public function setServicePassword($servicePassword);
-
-    /**
-     * @return mixed
-     */
     public function getServiceUrl();
 
     /**
@@ -44,7 +24,6 @@ interface ClientInterface
      * @param mixed $serviceVersion
      */
     public function setServiceVersion($serviceVersion);
-
 
 
 }

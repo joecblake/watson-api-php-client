@@ -30,38 +30,6 @@ class Client extends GuzzleHttp\Client implements ClientInterface
     /**
      * @return mixed
      */
-    public function getServiceUsername()
-    {
-        return $this->_serviceUsername;
-    }
-
-    /**
-     * @param mixed $serviceUsername
-     */
-    public function setServiceUsername($serviceUsername)
-    {
-        $this->_serviceUsername = $serviceUsername;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getServicePassword()
-    {
-        return $this->_servicePassword;
-    }
-
-    /**
-     * @param mixed $servicePassword
-     */
-    public function setServicePassword($servicePassword)
-    {
-        $this->_servicePassword = $servicePassword;
-    }
-
-    /**
-     * @return mixed
-     */
     public function getServiceUrl()
     {
         return $this->_serviceUrl;
@@ -105,9 +73,7 @@ class Client extends GuzzleHttp\Client implements ClientInterface
 
         try {
 
-            $response = $this->get($url, [
-                'auth' => [$this->getServiceUsername(), $this->getServicePassword()],
-            ]);
+            $response = $this->get($url);
 
             if ($response->getStatusCode() == 200) {
 
@@ -148,13 +114,10 @@ class Client extends GuzzleHttp\Client implements ClientInterface
 
         $endpoint = 'solr_clusters/' . $clusterId;
         $url = Helper::buildRequestUrl($this->getServiceUrl(), $this->getServiceVersion(), $endpoint);
-        $urlWithParams = sprintf('%s/%s', $url, $clusterId);
 
         try {
 
-            $response = $this->delete($urlWithParams, [
-                'auth' => [$this->getServiceUsername(), $this->getServicePassword()],
-            ]);
+            $response = $this->delete($url);
 
             if ($response->getStatusCode() == 200) {
 
@@ -201,7 +164,6 @@ class Client extends GuzzleHttp\Client implements ClientInterface
             $body['cluster_size'] = $size;
 
             $response = $this->post($url, [
-                'auth' => [$this->getServiceUsername(), $this->getServicePassword()],
                 'headers' => ['content-type' => 'application/json', 'Accept' => 'application/json'],
                 'body' => json_encode($body)
             ]);
@@ -248,9 +210,7 @@ class Client extends GuzzleHttp\Client implements ClientInterface
 
         try {
 
-            $response = $this->get($urlWithParams, [
-                'auth' => [$this->getServiceUsername(), $this->getServicePassword()],
-            ]);
+            $response = $this->get($urlWithParams);
 
             if ($response->getStatusCode() == 200) {
 
@@ -300,7 +260,6 @@ class Client extends GuzzleHttp\Client implements ClientInterface
         try {
 
             $response = $this->post($urlWithParams, [
-                'auth' => [$this->getServiceUsername(), $this->getServicePassword()],
                 'headers' => ['content-type' => 'application/zip'],
                 'body' => file_get_contents($filePath)
             ]);
@@ -349,9 +308,7 @@ class Client extends GuzzleHttp\Client implements ClientInterface
 
         try {
 
-            $response = $this->delete($urlWithParams, [
-                'auth' => [$this->getServiceUsername(), $this->getServicePassword()],
-            ]);
+            $response = $this->delete($urlWithParams);
 
             if ($response->getStatusCode() == 200) {
 
@@ -394,9 +351,7 @@ class Client extends GuzzleHttp\Client implements ClientInterface
 
         try {
 
-            $response = $this->get($urlWithParams, [
-                'auth' => [$this->getServiceUsername(), $this->getServicePassword()],
-            ]);
+            $response = $this->get($urlWithParams);
 
             if ($response->getStatusCode() == 200) {
 
@@ -450,8 +405,7 @@ class Client extends GuzzleHttp\Client implements ClientInterface
             $params['wt'] = 'json';
 
             $response = $this->post($urlWithParams, [
-                'auth' => [$this->getServiceUsername(), $this->getServicePassword()],
-                'headers' => ['content-type' => 'application/x-www-form-urlencoded', 'Accept' => 'application/json','Accept-Language'=>'en-US;q=0.6,en;q=0.4'],
+                'headers' => ['content-type' => 'application/x-www-form-urlencoded', 'Accept' => 'application/json'],
                 'form_params' => $params
             ]);
 
@@ -506,7 +460,6 @@ class Client extends GuzzleHttp\Client implements ClientInterface
             $params['wt'] = 'json';
 
             $response = $this->post($urlWithParams, [
-                'auth' => [$this->getServiceUsername(), $this->getServicePassword()],
                 'headers' => ['content-type' => 'application/x-www-form-urlencoded', 'Accept' => 'application/json'],
                 'form_params' => $params
             ]);
@@ -554,6 +507,8 @@ class Client extends GuzzleHttp\Client implements ClientInterface
         $url = Helper::buildRequestUrl($this->getServiceUrl(), $this->getServiceVersion(), $endpoint);
         $urlWithParams = sprintf('%s/%s/solr/%s/update', $url, $clusterId,$collectionName);
 
+        echo $urlWithParams."\r\n";
+
         try {
 
             if($data['source'] == 'stream'){
@@ -563,9 +518,8 @@ class Client extends GuzzleHttp\Client implements ClientInterface
             }
 
             $response = $this->post($urlWithParams, [
-                'auth' => [$this->getServiceUsername(), $this->getServicePassword()],
-                'headers' => ['content-type' => 'application/json', 'Accept' => 'application/json','Accept-Language'=>'en-US;q=0.6,en;q=0.4'],
-                'json' => $body,
+                'headers' => ['content-type' => 'application/json', 'Accept' => 'application/json'],
+                'body' => $body,
             ]);
 
             if ($response->getStatusCode() == 200) {
@@ -633,9 +587,9 @@ class Client extends GuzzleHttp\Client implements ClientInterface
             $params['fl'] =  implode(',',$fieldList);
 
             $response = $this->post($urlWithParams, [
-                'auth' => [$this->getServiceUsername(), $this->getServicePassword()],
                 'headers' => ['content-type' => 'application/x-www-form-urlencoded', 'Accept' => 'application/json'],
-                'form_params' => $params
+                'form_params' => $params,
+                'debug' => 1,
             ]);
 
             if ($response->getStatusCode() == 200) {
@@ -664,7 +618,6 @@ class Client extends GuzzleHttp\Client implements ClientInterface
             Helper::log($e->getMessage(), Logger::CRITICAL);
 
         }
-
 
     }
 

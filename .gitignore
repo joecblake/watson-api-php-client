@@ -5,3 +5,5 @@ composer.lock
 sample.php
 *.zip
 music_data.json
+cranfield*
+train.py
