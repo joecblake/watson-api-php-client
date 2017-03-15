@@ -20,7 +20,5 @@ $client = new Watson\Client($service,$config,$transportConfig);
 
 $clientInstance = $client->getClientInstance();
 
-$clientInstance->setServiceUsername($config->username);
-$clientInstance->setServicePassword($config->password);
 $clientInstance->setServiceUrl($config->url);
 $clientInstance->setServiceVersion($config->version);
