@@ -8,6 +8,7 @@ A simple PHP library for accessing IBM's Watson API services
 <pre>
 
 $service = 'retrieve-and-rank';
+
 $config = new \stdClass();
 $config->username = 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxx';
 $config->password = 'xxxxxxxxxxxxxx';
@@ -17,8 +18,6 @@ $config->version = 'v1';
 $transportConfig = ['auth' =>  [$config->username, $config->password]];
 
 $client = new Watson\Client($service,$config,$transportConfig);
-
 $clientInstance = $client->getClientInstance();
-
 $clientInstance->setServiceUrl($config->url);
 $clientInstance->setServiceVersion($config->version);
