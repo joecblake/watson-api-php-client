@@ -10,10 +10,12 @@
       "email": "joe.blake@buyerquest.com"
     }
   ],
-  "minimum-stability": "dev",
+  "minimum-stability": "stable",
   "require": {
+    "php": ">=5.6.0",
     "guzzlehttp/guzzle": "^6.2",
-    "monolog/monolog": "^1.22"
+    "monolog/monolog": "^1.22",
+    "keboola/csv": "^1.1"
   },
   "autoload": {
     "psr-4": {

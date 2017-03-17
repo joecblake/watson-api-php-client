@@ -15,13 +15,14 @@ use Watson\Helpers\ClientHelper as Helper;
 
 class Client extends GuzzleHttp\Client implements ClientInterface
 {
-
-    protected $_serviceUsername;
-    protected $_servicePassword;
+    
     protected $_serviceUrl;
     protected $_serviceEndpoint;
     protected $_serviceVersion;
-
+    
+    const DEBUG = 0;
+    const LOG_FILE = 'retrieve-and-rank';
+    
     public function __construct(array $config = [])
     {
         parent::__construct($config);
@@ -73,7 +74,9 @@ class Client extends GuzzleHttp\Client implements ClientInterface
 
         try {
 
-            $response = $this->get($url);
+            $response = $this->get($url,[
+                'debug'=>self::DEBUG
+            ]);
 
             if ($response->getStatusCode() == 200) {
 
@@ -84,21 +87,21 @@ class Client extends GuzzleHttp\Client implements ClientInterface
 
             } else {
 
-                Helper::log('Unexpected status code ' . $response->getStatusCode() . ': ' . $response->getBody()->getContents(), Logger::CRITICAL);
+                Helper::log('Unexpected status code ' . $response->getStatusCode() . ': ' . $response->getBody()->getContents(), Logger::CRITICAL,self::LOG_FILE);
 
             }
 
         } catch (ClientException $e) {
 
-            Helper::log($e->getMessage(), Logger::CRITICAL);
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
 
         } catch (BadResponseException $e) {
 
-            Helper::log($e->getMessage(), Logger::CRITICAL);
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
 
         } catch (\Exception $e) {
 
-            Helper::log($e->getMessage(), Logger::CRITICAL);
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
 
         }
 
@@ -114,10 +117,13 @@ class Client extends GuzzleHttp\Client implements ClientInterface
 
         $endpoint = 'solr_clusters/' . $clusterId;
         $url = Helper::buildRequestUrl($this->getServiceUrl(), $this->getServiceVersion(), $endpoint);
+        $urlWithParams = sprintf('%s/%s', $url, $clusterId);
 
         try {
 
-            $response = $this->delete($url);
+            $response = $this->delete($urlWithParams,[
+                'debug' => self::DEBUG
+            ]);
 
             if ($response->getStatusCode() == 200) {
 
@@ -131,15 +137,15 @@ class Client extends GuzzleHttp\Client implements ClientInterface
 
         } catch (ClientException $e) {
 
-            Helper::log($e->getMessage(), Logger::CRITICAL);
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
 
         } catch (BadResponseException $e) {
 
-            Helper::log($e->getMessage(), Logger::CRITICAL);
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
 
         } catch (\Exception $e) {
 
-            Helper::log($e->getMessage(), Logger::CRITICAL);
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
 
         }
 
@@ -165,7 +171,8 @@ class Client extends GuzzleHttp\Client implements ClientInterface
 
             $response = $this->post($url, [
                 'headers' => ['content-type' => 'application/json', 'Accept' => 'application/json'],
-                'body' => json_encode($body)
+                'body' => json_encode($body),
+                'debug' => self::DEBUG
             ]);
 
             if ($response->getStatusCode() == 200) {
@@ -183,15 +190,15 @@ class Client extends GuzzleHttp\Client implements ClientInterface
 
         } catch (ClientException $e) {
 
-            Helper::log($e->getMessage(), Logger::CRITICAL);
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
 
         } catch (BadResponseException $e) {
 
-            Helper::log($e->getMessage(), Logger::CRITICAL);
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
 
         } catch (\Exception $e) {
 
-            Helper::log($e->getMessage(), Logger::CRITICAL);
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
 
         }
 
@@ -210,7 +217,9 @@ class Client extends GuzzleHttp\Client implements ClientInterface
 
         try {
 
-            $response = $this->get($urlWithParams);
+            $response = $this->get($urlWithParams,[
+                'debug' => self::DEBUG
+            ]);
 
             if ($response->getStatusCode() == 200) {
 
@@ -227,18 +236,172 @@ class Client extends GuzzleHttp\Client implements ClientInterface
 
         } catch (ClientException $e) {
 
-            Helper::log($e->getMessage(), Logger::CRITICAL);
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
 
         } catch (BadResponseException $e) {
 
-            Helper::log($e->getMessage(), Logger::CRITICAL);
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
 
         } catch (\Exception $e) {
 
-            Helper::log($e->getMessage(), Logger::CRITICAL);
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
 
         }
 
+
+    }
+
+    /**
+     * Get SOLR statistics
+     * @param $clusterId
+     * @return mixed
+     */
+    public function getSolrStats($clusterId){
+
+        $endpoint = 'solr_clusters';
+        $url = Helper::buildRequestUrl($this->getServiceUrl(), $this->getServiceVersion(), $endpoint);
+        $urlWithParams = sprintf('%s/%s/stats', $url, $clusterId);
+
+        try {
+
+            $response = $this->get($urlWithParams,[
+                'debug' => self::DEBUG
+            ]);
+
+            if ($response->getStatusCode() == 200) {
+
+                $stream = $response->getBody();
+                $content = $stream->getContents();
+
+                return json_decode($content, true);
+
+            } else {
+
+                Helper::log('Unexpected status code ' . $response->getStatusCode() . ': ' . $response->getBody()->getContents(), Logger::CRITICAL);
+
+            }
+
+        } catch (ClientException $e) {
+
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
+
+        } catch (BadResponseException $e) {
+
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
+
+        } catch (\Exception $e) {
+
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
+
+        }
+
+    }
+
+
+    /**
+     * Resize a SOLR cluster
+     * @param $clusterId
+     * @param $clusterSize (1-7)
+     * @return mixed
+     */
+    public function resizeSolrCluster($clusterId,$clusterSize){
+
+        $endpoint = 'solr_clusters';
+        $url = Helper::buildRequestUrl($this->getServiceUrl(), $this->getServiceVersion(), $endpoint);
+        $urlWithParams = sprintf('%s/%s/cluster_size', $url, $clusterId);
+
+        try {
+
+            $body = json_encode(['cluster_size'=>(int)$clusterSize]);
+
+            if($clusterSize > 0 && $clusterSize < 8){
+
+                $response = $this->put($urlWithParams, [
+                    'headers' => ['content-type' => 'application/json', 'Accept' => 'application/json'],
+                    'body' => $body,
+                    'debug'=> self::DEBUG
+                ]);
+
+                if ($response->getStatusCode() == 200) {
+
+                    $stream = $response->getBody();
+                    $content = $stream->getContents();
+
+                    return json_decode($content, true);
+
+                } else {
+
+                    Helper::log('Unexpected status code ' . $response->getStatusCode() . ': ' . $response->getBody()->getContents(), Logger::CRITICAL);
+
+                }
+
+            }else{
+
+                throw new \Exception('Cluster size needs to be between 1 and 7 units');
+
+            }
+
+
+        } catch (ClientException $e) {
+
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
+
+        } catch (BadResponseException $e) {
+
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
+
+        } catch (\Exception $e) {
+
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
+
+        }
+
+    }
+
+
+    /**
+     * Get the status of a cluster resize operation
+     * @param $clusterId
+     * @return mixed
+     */
+    public function getSolrClusterResizeStatus($clusterId){
+
+        $endpoint = 'solr_clusters';
+        $url = Helper::buildRequestUrl($this->getServiceUrl(), $this->getServiceVersion(), $endpoint);
+        $urlWithParams = sprintf('%s/%s/cluster_size', $url, $clusterId);
+
+        try {
+
+            $response = $this->get($urlWithParams,[
+                'debug' => self::DEBUG
+            ]);
+
+            if ($response->getStatusCode() == 200) {
+
+                $stream = $response->getBody();
+                $content = $stream->getContents();
+
+                return json_decode($content, true);
+
+            } else {
+
+                Helper::log('Unexpected status code ' . $response->getStatusCode() . ': ' . $response->getBody()->getContents(), Logger::CRITICAL);
+
+            }
+
+        } catch (ClientException $e) {
+
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
+
+        } catch (BadResponseException $e) {
+
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
+
+        } catch (\Exception $e) {
+
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
+
+        }
 
     }
 
@@ -261,7 +424,8 @@ class Client extends GuzzleHttp\Client implements ClientInterface
 
             $response = $this->post($urlWithParams, [
                 'headers' => ['content-type' => 'application/zip'],
-                'body' => file_get_contents($filePath)
+                'body' => file_get_contents($filePath),
+                'debug'=>self::DEBUG
             ]);
 
             if ($response->getStatusCode() == 200) {
@@ -278,15 +442,15 @@ class Client extends GuzzleHttp\Client implements ClientInterface
 
         } catch (ClientException $e) {
 
-            Helper::log($e->getMessage(), Logger::CRITICAL);
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
 
         } catch (BadResponseException $e) {
 
-            Helper::log($e->getMessage(), Logger::CRITICAL);
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
 
         } catch (\Exception $e) {
 
-            Helper::log($e->getMessage(), Logger::CRITICAL);
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
 
         }
 
@@ -308,7 +472,9 @@ class Client extends GuzzleHttp\Client implements ClientInterface
 
         try {
 
-            $response = $this->delete($urlWithParams);
+            $response = $this->delete($urlWithParams,[
+                'debug'=>self::DEBUG
+            ]);
 
             if ($response->getStatusCode() == 200) {
 
@@ -322,15 +488,15 @@ class Client extends GuzzleHttp\Client implements ClientInterface
 
         } catch (ClientException $e) {
 
-            Helper::log($e->getMessage(), Logger::CRITICAL);
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
 
         } catch (BadResponseException $e) {
 
-            Helper::log($e->getMessage(), Logger::CRITICAL);
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
 
         } catch (\Exception $e) {
 
-            Helper::log($e->getMessage(), Logger::CRITICAL);
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
 
         }
 
@@ -351,7 +517,9 @@ class Client extends GuzzleHttp\Client implements ClientInterface
 
         try {
 
-            $response = $this->get($urlWithParams);
+            $response = $this->get($urlWithParams,[
+                'debug'=>self::DEBUG
+            ]);
 
             if ($response->getStatusCode() == 200) {
 
@@ -368,15 +536,15 @@ class Client extends GuzzleHttp\Client implements ClientInterface
 
         } catch (ClientException $e) {
 
-            Helper::log($e->getMessage(), Logger::CRITICAL);
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
 
         } catch (BadResponseException $e) {
 
-            Helper::log($e->getMessage(), Logger::CRITICAL);
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
 
         } catch (\Exception $e) {
 
-            Helper::log($e->getMessage(), Logger::CRITICAL);
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
 
         }
 
@@ -406,7 +574,8 @@ class Client extends GuzzleHttp\Client implements ClientInterface
 
             $response = $this->post($urlWithParams, [
                 'headers' => ['content-type' => 'application/x-www-form-urlencoded', 'Accept' => 'application/json'],
-                'form_params' => $params
+                'form_params' => $params,
+                'debug'=>self::DEBUG
             ]);
 
             if ($response->getStatusCode() == 200) {
@@ -424,15 +593,15 @@ class Client extends GuzzleHttp\Client implements ClientInterface
 
         } catch (ClientException $e) {
 
-            Helper::log($e->getMessage(), Logger::CRITICAL);
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
 
         } catch (BadResponseException $e) {
 
-            Helper::log($e->getMessage(), Logger::CRITICAL);
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
 
         } catch (\Exception $e) {
 
-            Helper::log($e->getMessage(), Logger::CRITICAL);
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
 
         }
 
@@ -440,7 +609,7 @@ class Client extends GuzzleHttp\Client implements ClientInterface
 
 
     /**
-     * Delte a SOLR collection
+     * Delete a SOLR collection
      * @param $clusterId
      * @param $collectionName
      * @return mixed
@@ -461,7 +630,8 @@ class Client extends GuzzleHttp\Client implements ClientInterface
 
             $response = $this->post($urlWithParams, [
                 'headers' => ['content-type' => 'application/x-www-form-urlencoded', 'Accept' => 'application/json'],
-                'form_params' => $params
+                'form_params' => $params,
+                'debug'=>self::DEBUG
             ]);
 
             if ($response->getStatusCode() == 200) {
@@ -479,15 +649,15 @@ class Client extends GuzzleHttp\Client implements ClientInterface
 
         } catch (ClientException $e) {
 
-            Helper::log($e->getMessage(), Logger::CRITICAL);
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
 
         } catch (BadResponseException $e) {
 
-            Helper::log($e->getMessage(), Logger::CRITICAL);
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
 
         } catch (\Exception $e) {
 
-            Helper::log($e->getMessage(), Logger::CRITICAL);
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
 
         }
 
@@ -495,6 +665,7 @@ class Client extends GuzzleHttp\Client implements ClientInterface
 
 
     /**
+     * Update SOLR index with a given set of documents
      * @param $clusterId
      * @param $collectionName
      * @param array $data
@@ -507,8 +678,6 @@ class Client extends GuzzleHttp\Client implements ClientInterface
         $url = Helper::buildRequestUrl($this->getServiceUrl(), $this->getServiceVersion(), $endpoint);
         $urlWithParams = sprintf('%s/%s/solr/%s/update', $url, $clusterId,$collectionName);
 
-        echo $urlWithParams."\r\n";
-
         try {
 
             if($data['source'] == 'stream'){
@@ -520,6 +689,7 @@ class Client extends GuzzleHttp\Client implements ClientInterface
             $response = $this->post($urlWithParams, [
                 'headers' => ['content-type' => 'application/json', 'Accept' => 'application/json'],
                 'body' => $body,
+                'debug'=> self::DEBUG
             ]);
 
             if ($response->getStatusCode() == 200) {
@@ -549,23 +719,22 @@ class Client extends GuzzleHttp\Client implements ClientInterface
 
         } catch (ClientException $e) {
 
-            Helper::log($e->getMessage(), Logger::CRITICAL);
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
 
         } catch (BadResponseException $e) {
 
-            Helper::log($e->getMessage(), Logger::CRITICAL);
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
 
         } catch (\Exception $e) {
 
-            Helper::log($e->getMessage(), Logger::CRITICAL);
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
 
         }
 
-
     }
 
-
     /**
+     * Performs a SOLR un-ranked search
      * @param $clusterId
      * @param $collectionName
      * @param $question
@@ -589,7 +758,7 @@ class Client extends GuzzleHttp\Client implements ClientInterface
             $response = $this->post($urlWithParams, [
                 'headers' => ['content-type' => 'application/x-www-form-urlencoded', 'Accept' => 'application/json'],
                 'form_params' => $params,
-                'debug' => 1,
+                'debug'=> self::DEBUG
             ]);
 
             if ($response->getStatusCode() == 200) {
@@ -607,17 +776,315 @@ class Client extends GuzzleHttp\Client implements ClientInterface
 
         } catch (ClientException $e) {
 
-            Helper::log($e->getMessage(), Logger::CRITICAL);
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
 
         } catch (BadResponseException $e) {
 
-            Helper::log($e->getMessage(), Logger::CRITICAL);
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
 
         } catch (\Exception $e) {
 
-            Helper::log($e->getMessage(), Logger::CRITICAL);
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
 
         }
+
+    }
+
+    /**
+     * Creates a ranker and installs the base "Ground Truth"
+     * @param $rankerName
+     * @param $groundTruthFilePath
+     * @param $clusterId
+     * @param $collectionName
+     * @param null $trainingDataFilePath
+     * @return mixed
+     */
+    public function createRanker($rankerName,$groundTruthFilePath,$clusterId,$collectionName,$trainingDataFilePath = null){
+
+        $endpoint = 'rankers';
+        $url = Helper::buildRequestUrl($this->getServiceUrl(), $this->getServiceVersion(), $endpoint);
+        $trainingData = $this->_generateTrainingData($groundTruthFilePath,$clusterId,$collectionName,$trainingDataFilePath);
+
+        try {
+
+            $response = $this->post($url, [
+                'multipart' => [
+                    [
+                        'name'     => 'training_data',
+                        'contents' => $trainingData
+                    ],
+                    [
+                        'name'     => 'training_metadata',
+                        'contents' => json_encode(['name'=>$rankerName])
+                    ]
+                ],
+                'debug'=>self::DEBUG
+            ]);
+
+            if ($response->getStatusCode() == 200) {
+
+                $stream = $response->getBody();
+                $content = $stream->getContents();
+
+                return json_decode($content, true);
+
+            } else {
+
+                Helper::log('Unexpected status code ' . $response->getStatusCode() . ': ' . $response->getBody()->getContents(), Logger::CRITICAL,self::LOG_FILE);
+
+            }
+
+        } catch (ClientException $e) {
+
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
+
+        } catch (BadResponseException $e) {
+
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
+
+        } catch (\Exception $e) {
+
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
+
+        }
+
+
+    }
+
+    /**
+     * Generates training data from a given "Ground Truth" csv file
+     * @param $groundTruthFilePath
+     * @param $clusterId
+     * @param $collectionName
+     * @param null $trainingDataFilePath
+     * @return array
+     */
+    protected function _generateTrainingData($groundTruthFilePath,$clusterId,$collectionName,$trainingDataFilePath = null){
+
+        $endpoint = 'solr_clusters';
+        $url = Helper::buildRequestUrl($this->getServiceUrl(), $this->getServiceVersion(), $endpoint);
+        $urlWithParams = sprintf('%s/%s/solr/%s/fcselect', $url, $clusterId,$collectionName);
+
+        $groundTruthRows = Helper::readCsv($groundTruthFilePath);
+        $trainingDataArray    = array();
+        $trainingData  = '';
+
+        try{
+
+            $groundTruthRowCount = 0;
+
+            foreach($groundTruthRows as $groundTruthRow){
+
+                $question = array_shift($groundTruthRow);
+                $relevance = implode(',',$groundTruthRow);
+
+                $params = array();
+                $params['q'] = $question;
+                $params['gt'] = $relevance;
+                $params['generateHeader'] = ($groundTruthRowCount === 0) ? 'true' : 'false';
+                $params['rows'] = 10; // Rows per query. 10 is fine?
+                $params['returnRSInput'] = 'true';
+                $params['wt'] = 'json';
+
+                $response = $this->get($urlWithParams,[
+                    'query' => $params,
+                    'debug' => self::DEBUG
+                ]);
+
+                if ($response->getStatusCode() == 200) {
+
+                    $stream = $response->getBody();
+                    $content = $stream->getContents();
+
+                    $responseObj = json_decode($content);
+
+                    if(isset($responseObj->RSInput)){
+
+                        if(!is_null($trainingDataFilePath)){
+                            file_put_contents($trainingDataFilePath,$responseObj->RSInput,FILE_APPEND);
+                        }
+
+                        array_push($trainingDataArray,$responseObj->RSInput);
+
+                    }else{
+
+                        throw new \Exception('RSInput is not present.');
+
+                    }
+
+                } else {
+
+                    Helper::log('Unexpected status code ' . $response->getStatusCode() . ': ' . $response->getBody()->getContents(), Logger::CRITICAL,self::LOG_FILE);
+
+                }
+
+                $groundTruthRowCount++;
+
+            }
+
+            if(!empty($trainingDataArray)){
+                $trainingData = implode('',$trainingDataArray);
+            }
+
+        } catch (ClientException $e) {
+
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
+
+        } catch (BadResponseException $e) {
+
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
+
+        } catch (\Exception $e) {
+
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
+
+        }
+
+        return $trainingData;
+
+    }
+
+    /**
+     * List Rankers
+     * @return mixed
+     */
+    public function listRankers()
+    {
+
+        $endpoint = 'rankers';
+        $url = Helper::buildRequestUrl($this->getServiceUrl(), $this->getServiceVersion(), $endpoint);
+
+        try {
+
+            $response = $this->get($url,[
+                'debug'=>self::DEBUG
+            ]);
+
+            if ($response->getStatusCode() == 200) {
+
+                $stream = $response->getBody();
+                $content = $stream->getContents();
+
+                return json_decode($content, true);
+
+            } else {
+
+                Helper::log('Unexpected status code ' . $response->getStatusCode() . ': ' . $response->getBody()->getContents(), Logger::CRITICAL);
+
+            }
+
+        } catch (ClientException $e) {
+
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
+
+        } catch (BadResponseException $e) {
+
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
+
+        } catch (\Exception $e) {
+
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
+
+        }
+
+    }
+
+    /**
+     * Get information of a specific ranker
+     * @param $rankerId
+     * @return mixed
+     */
+    public function getRankerInfo($rankerId)
+    {
+
+        $endpoint = 'rankers';
+        $url = Helper::buildRequestUrl($this->getServiceUrl(), $this->getServiceVersion(), $endpoint);
+        $urlWithParams = sprintf('%s/%s', $url, $rankerId);
+
+        try {
+
+            $response = $this->get($urlWithParams,[
+                'debug'=>self::DEBUG
+            ]);
+
+            if ($response->getStatusCode() == 200) {
+
+                $stream = $response->getBody();
+                $content = $stream->getContents();
+
+                return json_decode($content, true);
+
+            } else {
+
+                Helper::log('Unexpected status code ' . $response->getStatusCode() . ': ' . $response->getBody()->getContents(), Logger::CRITICAL);
+
+            }
+
+        } catch (ClientException $e) {
+
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
+
+        } catch (BadResponseException $e) {
+
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
+
+        } catch (\Exception $e) {
+
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
+
+        }
+
+
+    }
+
+
+    /**
+     * Deletes the ranker with the given ID
+     * @param $rankerId
+     * @return bool
+     */
+    public function deleteRanker($rankerId)
+    {
+
+        $endpoint = 'rankers';
+        $url = Helper::buildRequestUrl($this->getServiceUrl(), $this->getServiceVersion(), $endpoint);
+        $urlWithParams = sprintf('%s/%s', $url, $rankerId);
+
+        try {
+
+            $response = $this->delete($urlWithParams,[
+                'debug' => self::DEBUG
+            ]);
+
+            if ($response->getStatusCode() == 200) {
+
+                return true;
+
+            } else {
+
+                Helper::log('Unexpected status code ' . $response->getStatusCode() . ': ' . $response->getBody()->getContents(), Logger::CRITICAL);
+
+            }
+
+        } catch (ClientException $e) {
+
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
+
+        } catch (BadResponseException $e) {
+
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
+
+        } catch (\Exception $e) {
+
+            Helper::log($e->getMessage(), Logger::CRITICAL,self::LOG_FILE);
+
+        }
+
+    }
+
+    public function rank($rankerId,$answerData){
+
+
 
     }
 

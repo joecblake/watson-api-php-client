@@ -2,8 +2,5 @@ composer.phar
 /vendor/
 .idea
 composer.lock
-sample.php
-*.zip
-music_data.json
+shell.php
 cranfield*
-train.py
