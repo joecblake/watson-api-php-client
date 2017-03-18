@@ -4,7 +4,8 @@ namespace Watson\Helpers;
 
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
-
+use Keboola\Csv\CsvFile;
+use Keboola\Csv\Exception as KeboolaCsvException;
 
 class ClientHelper
 {
@@ -64,6 +65,63 @@ class ClientHelper
             default:
                 $logger->addInfo($message);
                 break;
+
+        }
+
+    }
+
+    /**
+     * Read CSV Files to an array
+     * @param $inputFilePath
+     * @return array
+     */
+    public static function readCsv($inputFilePath){
+
+        $rows = array();
+
+        try{
+            $csvFile = new CsvFile($inputFilePath);
+
+            foreach($csvFile as $row) {
+                array_push($rows,$row);
+            }
+
+        }catch(KeboolaCsvException $e){
+
+            self::log($e->getMessage(), Logger::CRITICAL);
+
+        }catch(\Exception $e){
+
+            self::log($e->getMessage(), Logger::CRITICAL);
+
+        }
+
+        return $rows;
+
+    }
+
+
+    /**
+     * @param $outputFilePath
+     * @param array $rows
+     */
+    public static function writeCsv($outputFilePath,array $rows = []){
+
+        try{
+
+            $csvFile = new CsvFile($outputFilePath);
+
+            foreach ($rows as $row) {
+                $csvFile->writeRow($row);
+            }
+
+        }catch(KeboolaCsvException $e){
+
+            self::log($e->getMessage(), Logger::CRITICAL);
+
+        }catch(\Exception $e){
+
+            self::log($e->getMessage(), Logger::CRITICAL);
 
         }
 
