@@ -20,3 +20,10 @@ $client = new Watson\Client($service,$config,$transportConfig);
 $clientInstance = $client->getClientInstance();
 $clientInstance->setServiceUrl($config->url);
 $clientInstance->setServiceVersion($config->version);
+
+
+## TODO
+
+ -- Implement unit tests
+ -- Improve method returning and exception throwing
+ -- Get rid of Monolog dependency (error logging should not be handled by library)
