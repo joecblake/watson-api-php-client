@@ -221,7 +221,7 @@ final class Client extends GuzzleHttp\Client implements ClientInterface
     public function deleteSolrCluster($clusterId)
     {
 
-        $endpoint = 'solr_clusters/' . $clusterId;
+        $endpoint = 'solr_clusters';
         $url = Helper::buildRequestUrl($this->getServiceUrl(), $this->getServiceVersion(), $endpoint);
         $urlWithParams = sprintf('%s/%s', $url, $clusterId);
 
