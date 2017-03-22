@@ -649,9 +649,10 @@ final class Client extends GuzzleHttp\Client implements ClientInterface
      * @param $collectionName
      * @param $question
      * @param array $fieldList
+     * @param int $rows
      * @return mixed
      */
-    public function solrSearch($clusterId, $collectionName, $question, array $fieldList = [])
+    public function solrSearch($clusterId, $collectionName, $question, array $fieldList = [],$rows = 100)
     {
 
         $endpoint = 'solr_clusters';
@@ -665,6 +666,7 @@ final class Client extends GuzzleHttp\Client implements ClientInterface
             $params['name'] = $collectionName;
             $params['wt'] = 'json';
             $params['fl'] = implode(',', $fieldList);
+            $params['rows'] = $rows;
 
             $response = $this->post($urlWithParams, [
                 'headers' => ['content-type' => 'application/x-www-form-urlencoded', 'Accept' => 'application/json'],
@@ -970,9 +972,10 @@ final class Client extends GuzzleHttp\Client implements ClientInterface
      * @param $rankerId
      * @param $question
      * @param $fieldList
+     * @param $rows
      * @return mixed
      */
-    public function searchAndRank($clusterId, $collectionName, $rankerId, $question, $fieldList)
+    public function searchAndRank($clusterId, $collectionName, $rankerId, $question, $fieldList = [],$rows = 100)
     {
 
         $endpoint = 'solr_clusters';
@@ -986,6 +989,7 @@ final class Client extends GuzzleHttp\Client implements ClientInterface
             $params['ranker_id'] = $rankerId;
             $params['wt'] = 'json';
             $params['fl'] = implode(',', $fieldList);
+            $params['rows'] = $rows;
 
             $response = $this->post($urlWithParams, [
                 'headers' => ['content-type' => 'application/x-www-form-urlencoded', 'Accept' => 'application/json'],
